@@ -1,0 +1,1406 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{tcolorbox}
+
+\geometry{margin=2.5cm}
+\setlength{\parindent}{0.6cm}
+\setlength{\parskip}{0.25em}
+\onehalfspacing
+
+% Couleurs pour le cadre de la page de garde
+\definecolor{lightGray}{RGB}{240,240,240}
+\definecolor{primaryBlue}{RGB}{0,102,204}
+
+\newcommand{\captureplaceholder}[2]{
+	\begin{figure}[htbp]
+		\centering
+		\fbox{\begin{minipage}[c][5cm][c]{0.88\textwidth}
+			\centering
+			\textbf{Capture d'écran à insérer}\\[0.4cm]
+			#1\\[0.2cm]
+			\small #2
+		\end{minipage}}
+		\caption{#1}
+	\end{figure}
+}
+
+\newcommand{\screenshotpage}[2]{
+\clearpage
+\begin{figure}[p]
+\centering
+\fbox{\begin{minipage}[c][14cm][c]{0.9\textwidth}
+\centering
+\Large \textbf{Emplacement réservé à une capture d'écran}\\[0.8cm]
+\normalsize #1\\[0.5cm]
+\small #2
+\end{minipage}}
+\caption{#1}
+\end{figure}
+\clearpage
+}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+
+	\vspace*{1cm}
+	% Remplacer les chemins ci-dessous par les logos disponibles.
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[height=2cm]{emsi.png}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[height=2cm]{logo (2).png}
+	\end{minipage}
+
+	\vfill
+
+	{\Huge \textbf{Rapport de Projet de Fin de Stage}\par}
+	\vspace{0.8cm}
+
+	\begin{tcolorbox}[colback=lightGray,colframe=primaryBlue,arc=2mm,boxrule=1pt,width=0.94\textwidth]
+		\centering
+		{\Huge \textbf{Démonstrateur de prévision horaire de la demande électrique}\par}
+	\end{tcolorbox}
+
+	\vspace{2.0cm}
+	{\large Entreprise d'accueil : \textbf{Mogador Technologie Industrielle}\par}
+	\vspace{0.3cm}
+	{\large Période de stage : \textbf{Du 10 août au 25 septembre 2026}\par}
+
+	\vfill
+	\begin{center}
+		\large
+		\textbf{Étudiant :} Elhannak Badr\\[0.3cm]
+		\textbf{Encadrant pédagogique :} Saddouk Lamyae\\[0.3cm]
+		\textbf{Encadrant entreprise :} Khatar Zakaria
+	\end{center}
+
+	\vfill
+
+	{\large Année universitaire : 2025--2026\par}
+\end{titlepage}
+
+
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+Je tiens tout d’abord à exprimer ma profonde gratitude à l’ensemble des personnes qui ont contribué, de près ou de loin, à la réalisation de ce projet de fin de stage. Cette expérience professionnelle a constitué une étape importante dans mon parcours académique et m’a permis de mettre en pratique les connaissances acquises au cours de ma formation, tout en développant de nouvelles compétences dans un environnement professionnel.
+
+J’adresse tout particulièrement mes sincères remerciements à l’ensemble de l’équipe de **Mogador Technologie Industrielle** pour son accueil chaleureux, sa disponibilité et son accompagnement tout au long de mon stage. Je remercie également les collaborateurs qui ont pris le temps de répondre à mes questions, de partager leurs connaissances et de me fournir les informations nécessaires à la compréhension du fonctionnement de l’entreprise, de son environnement professionnel ainsi que des différentes problématiques liées au projet.
+
+Je souhaite également remercier mon **encadrant en entreprise** pour son accompagnement, ses conseils et ses orientations tout au long de cette expérience. Son suivi et ses remarques m’ont permis de mieux comprendre les exigences du milieu professionnel, d’améliorer ma méthode de travail et d’avancer progressivement dans la réalisation des différentes étapes du projet.
+
+Mes remerciements s’adressent également à mon **encadrant pédagogique**, pour son suivi, ses conseils et ses recommandations, qui m’ont permis de structurer mon travail et de maintenir une démarche cohérente avec les objectifs pédagogiques de cette période de stage.
+
+
+
+Enfin, je remercie toutes les personnes, enseignants, encadrants, collaborateurs et collègues, qui ont contribué, directement ou indirectement, au bon déroulement de ce stage et à l’enrichissement de mon expérience. Leur disponibilité, leurs conseils et leur soutien ont largement participé à la réussite de cette expérience professionnelle et à mon développement personnel et professionnel.
+
+
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Ce projet consiste à concevoir un démonstrateur local de prévision horaire de
+la demande électrique. La solution exploite un historique de données horaires
+comprenant la demande, la température et l'humidité. Les données utilisées
+sont synthétiques et couvrent la période allant de janvier 2020 à décembre
+2024. Après une étape d'ingestion et de contrôle qualité, des variables
+calendaires, météorologiques, de retard et des statistiques glissantes sont
+construites afin d'alimenter un modèle de régression XGBoost. L'évaluation
+respecte l'ordre chronologique : les données jusqu'à 2022 servent à
+l'entraînement, l'année 2023 à la sélection et l'année 2024 au test final.
+Le modèle retenu obtient sur le test 2024 un MAE de 103,72 MW, un RMSE de
+130,22 MW, un coefficient de détermination $R^2$ de 0,9280 et un WAPE de
+3,55\%. Le système est exposé par une API FastAPI et visualisé dans une
+interface React proposant l'exploration des données, l'analyse de la demande,
+l'évaluation du modèle et la prévision future récursive. Le résultat constitue
+un prototype académique et local ; il ne prétend pas être une solution
+industrielle validée sur des mesures électriques réelles.
+
+\textbf{Mots-clés :} demande électrique, prévision horaire, XGBoost, FastAPI,
+React, séries temporelles.
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This project aims to build a local demonstrator for hourly electricity demand
+forecasting. The solution uses a historical hourly dataset containing demand,
+temperature and humidity. The data are synthetic and cover the period from
+January 2020 to December 2024. After ingestion and quality checks, calendar,
+weather, lagged-demand and rolling-statistics features are generated for an
+XGBoost regression model. The evaluation follows the chronological order of
+the observations: data up to 2022 are used for training, 2023 is used for
+model selection and early stopping, and 2024 is reserved for the final test.
+On the 2024 test set, the selected model achieves a MAE of 103.72 MW, an RMSE
+of 130.22 MW, an $R^2$ score of 0.9280 and a WAPE of 3.55\%. The system is
+served through a FastAPI backend and displayed through a React interface that
+provides data exploration, demand analysis, model evaluation and recursive
+future forecasting. The result is an academic local prototype. It has not
+been validated as an operational industrial solution on real electricity
+measurements.
+
+\textbf{Keywords:} electricity demand, hourly forecasting, XGBoost, FastAPI,
+React, time series.
+
+% Ajouter éventuellement une version arabe sur le même modèle.
+
+\tableofcontents
+\addcontentsline{toc}{chapter}{Table des matières}
+
+\listoffigures
+\addcontentsline{toc}{chapter}{Liste des figures}
+
+\listoftables
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+
+\chapter*{Liste des abréviations}
+\addcontentsline{toc}{chapter}{Liste des abréviations}
+
+\begin{longtable}{p{0.22\textwidth} p{0.68\textwidth}}
+\caption{Liste des abréviations}\label{tab:abreviations}\\
+\toprule
+Abréviation & Signification \\
+\midrule
+\endfirsthead
+\toprule
+Abréviation & Signification \\
+\midrule
+\endhead
+API & Application Programming Interface \\
+BI & Business Intelligence \\
+CSV & Comma-Separated Values \\
+ETL & Extract, Transform and Load \\
+F1 & F-measure, moyenne harmonique de la précision et du rappel \\
+IA & Intelligence artificielle \\
+JSON & JavaScript Object Notation \\
+MAE & Mean Absolute Error, erreur absolue moyenne \\
+ML & Machine Learning, apprentissage automatique \\
+MW & Megawatt, unité de puissance \\
+RMSE & Root Mean Squared Error, racine de l'erreur quadratique moyenne \\
+UML & Unified Modeling Language \\
+URL & Uniform Resource Locator \\
+WAPE & Weighted Absolute Percentage Error \\
+XLSX & Format de classeur Microsoft Excel \\
+\bottomrule
+\end{longtable}
+
+\chapter{Introduction générale}
+
+\section{Contexte général du stage}
+
+Ce stage s'inscrit dans le cadre de la formation d'ingénieur et porte sur la
+mise en place d'un outil d'analyse et de prévision de la demande électrique.
+Il permet de mobiliser des compétences en traitement des données,
+apprentissage automatique, développement backend et visualisation web.
+
+Le projet est réalisé dans le contexte de Mogador Technologie Industrielle,
+entreprise marocaine située au N 55, boulevard Mohamed Bouziane, Sidi
+Othmane, Casablanca. L'entreprise opère dans le secteur des installations
+électriques et hydrauliques ainsi que dans la coordination d'entreprises.
+Dans cet environnement, une meilleure lecture de la demande électrique peut
+faciliter l'analyse des historiques et la préparation d'outils d'aide à la
+décision.
+
+\section{Problématique posée}
+
+La problématique est la suivante : comment exploiter un historique de demande
+électrique et de variables météorologiques pour produire une prévision horaire
+lisible, évaluable et accessible à travers une interface web ?
+
+La difficulté provient du caractère temporel des données, de la nécessité de
+respecter la causalité lors de la création des variables et de la différence
+entre une prévision historique évaluée avec des observations disponibles et
+une prévision future entièrement récursive. Le projet doit donc fournir une
+chaîne cohérente tout en distinguant clairement le prototype technique d'une
+solution opérationnelle.
+
+\section{Objectifs du projet}
+
+L'objectif principal est de développer un démonstrateur local capable
+d'explorer la demande électrique, d'évaluer un modèle de prévision et de
+générer une prévision future sur un horizon de une à 168 heures. Les objectifs
+spécifiques sont les suivants :
+
+\begin{itemize}
+	\item contrôler et préparer les données horaires ;
+	\item construire des variables calendaires, météorologiques et historiques ;
+	\item entraîner et comparer un modèle XGBoost à des baselines naïves ;
+	\item exposer les traitements par une API FastAPI ;
+	\item développer une interface React pour l'analyse et la prévision ;
+	\item évaluer les performances et documenter les limites du prototype.
+\end{itemize}
+
+\section{Plan du rapport}
+
+Le premier chapitre présente Mogador Technologie Industrielle, le contexte
+du projet et le cahier des charges. Le deuxième chapitre expose l'état de
+l'art et justifie le choix des technologies. Le troisième chapitre décrit la
+conception, l'architecture et la modélisation de la solution. Le quatrième
+chapitre présente la réalisation, l'environnement technique et les tests. Le
+cinquième chapitre analyse les résultats et leurs limites. Enfin, la
+conclusion générale dresse le bilan du travail et présente les perspectives.
+
+\chapter{Contexte et Cahier des Charges}
+
+\section{Présentation de l'entreprise d'accueil}
+
+Mogador Technologie Industrielle est une entreprise basée au Maroc. Son siège
+est situé au N 55, boulevard Mohamed Bouziane, Sidi Othmane, Casablanca.
+L'entreprise opère dans le secteur des installations électriques,
+hydrauliques et de la coordination d'entreprises.
+
+Son activité la place au croisement de plusieurs intervenants techniques et
+organisationnels. Les installations électriques et hydrauliques nécessitent en
+particulier une bonne coordination des opérations, un suivi des équipements
+et une capacité à exploiter les informations disponibles pour préparer les
+décisions techniques.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{M1.jpeg}
+    \caption{Présentation de Mogador Technologie Industrielle}
+    \label{fig:}
+\end{figure}
+
+\section{Contexte métier du projet}
+
+Le projet concerne l'exploitation de données de demande électrique dans un
+contexte d'installations et de coordination techniques. Les acteurs concernés
+sont les responsables qui consultent les indicateurs, les utilisateurs qui
+analysent l'évolution de la demande et les profils techniques qui peuvent
+utiliser les prévisions comme support d'analyse.
+
+Le démonstrateur ne commande pas directement une installation. Il fournit une
+lecture structurée de l'historique et une estimation de la demande future afin
+de faciliter l'analyse et l'expérimentation.
+
+\section{Analyse de l'existant}
+
+Avant la réalisation du démonstrateur, l'analyse pouvait être effectuée à
+partir de fichiers de données et de traitements séparés. Cette organisation
+rend plus difficile la vérification de la qualité des données, la comparaison
+des modèles et la consultation homogène des résultats.
+
+La solution développée regroupe l'ingestion, la création des variables,
+l'évaluation du modèle, l'exposition des résultats et leur visualisation dans
+une même chaîne logicielle.
+
+\subsection{Problèmes et limites de la solution actuelle}
+
+Les principales limites identifiées sont l'absence d'une interface unifiée,
+la difficulté à reproduire les traitements manuels et le manque de visibilité
+sur les métriques de prévision. Le projet répond à ces limites par une API
+structurée, des contrôles de qualité et un tableau de bord composé de pages
+d'analyse dédiées.
+
+\section{Expression des besoins}
+
+\subsection{Besoins fonctionnels}
+
+Les besoins fonctionnels retenus sont les suivants :
+
+\begin{itemize}
+	\item charger un fichier de données CSV ou XLSX ;
+	\item vérifier les doublons, les trous horaires et les valeurs manquantes ;
+	\item présenter les statistiques générales et l'évolution de la demande ;
+	\item analyser les effets de l'heure, du mois, du week-end et de la météo ;
+	\item afficher les métriques du modèle et les comparer aux baselines ;
+	\item consulter une prédiction historique à une date donnée ;
+	\item générer une prévision future de 1 à 168 heures ;
+	\item afficher les informations dans une interface React.
+\end{itemize}
+
+\subsection{Besoins non fonctionnels}
+
+Les besoins non fonctionnels sont la reproductibilité des traitements,
+l'absence de fuite temporelle, la lisibilité des graphiques, la validation des
+paramètres reçus par l'API et la séparation claire entre backend et frontend.
+La solution doit également rester simple à exécuter localement et fournir des
+messages d'erreur compréhensibles lorsque les données ou les paramètres sont
+invalides.
+
+\section{Contraintes techniques et organisationnelles}
+
+Le projet est contraint par l'utilisation de données synthétiques, l'absence
+d'un fournisseur météo externe et le caractère local du démonstrateur. Le
+	fichier de données doit respecter le contrat de colonnes \texttt{Timestamp},
+\texttt{Demand}, \texttt{Temperature} et \texttt{Humidity}. La demande cible n'est pas imputée,
+alors que les variables météorologiques peuvent être propagées vers l'avant.
+
+Une autre contrainte est la prévision récursive : au-delà de la première
+heure, les prédictions précédentes alimentent les étapes suivantes. Les
+résultats multi-horizon doivent donc être considérés comme expérimentaux et
+non comme une garantie opérationnelle.
+
+\section{Périmètre du projet}
+
+Le périmètre fonctionnel comprend l'analyse d'un historique horaire, la
+préparation des données, la construction de variables explicatives,
+l'entraînement d'un modèle de régression, l'exposition des résultats par une
+API et leur consultation dans une interface web. Le périmètre comprend aussi
+la comparaison avec des méthodes de référence et la génération d'une
+prévision récursive limitée à 168 heures dans l'application.
+
+En revanche, le projet ne couvre pas le pilotage automatique d'une
+installation, la facturation, la détection de défauts électriques, la
+prévision météorologique elle-même ou le déploiement sur une infrastructure
+de production. Cette délimitation est importante : le prototype démontre la
+faisabilité technique d'une chaîne de prévision, mais ne remplace pas une
+étude industrielle complète.
+
+\section{Critères d'acceptation}
+
+Les critères d'acceptation retenus sont présentés dans le tableau
+\ref{tab:criteres-acceptation}. Ils permettent de vérifier que chaque besoin
+possède un résultat observable et un moyen de validation.
+
+\begin{longtable}{p{0.27\textwidth} p{0.38\textwidth} p{0.22\textwidth}}
+\caption{Critères d'acceptation du projet}\label{tab:criteres-acceptation}\\
+\toprule
+Critère & Résultat attendu & Vérification \\
+\midrule
+\endfirsthead
+\toprule
+Critère & Résultat attendu & Vérification \\
+\midrule
+\endhead
+Qualité des données & Les doublons, trous et valeurs manquantes sont identifiés. & Tests d'ingestion \\
+Variables causales & Les features de demande utilisent uniquement le passé. & Tests de features \\
+Modèle & Le modèle produit une prédiction numérique. & Test de prédiction \\
+Évaluation & Les métriques sont calculées sur un test chronologique. & Tests de modélisation \\
+API & Les endpoints répondent avec des données structurées. & Tests FastAPI \\
+Interface & Les quatre pages principales s'affichent. & Tests frontend \\
+Prévision future & Un horizon valide produit une série horaire. & Test récursif \\
+\bottomrule
+\end{longtable}
+
+\section{Risques du projet}
+
+Plusieurs risques ont été identifiés dès la conception. Le premier est le
+risque de fuite temporelle : une variable calculée avec l'observation cible
+ou une observation future rendrait les performances artificiellement
+optimistes. Il est réduit par le décalage des historiques et par la séparation
+chronologique des jeux de données.
+
+Le deuxième risque est la dégradation des prévisions récursives. Lorsque les
+prédictions sont réinjectées, une erreur à une étape peut influencer les
+étapes suivantes. Le rapport distingue donc les performances historiques des
+prévisions réellement futures.
+
+Le troisième risque est lié à la qualité et à l'origine des données. Le jeu
+utilisé est synthétique ; les résultats ne doivent pas être généralisés à une
+installation réelle sans nouvelle campagne de validation.
+
+\begin{table}[htbp]
+\centering
+\caption{Matrice synthétique des risques}
+\label{tab:risques}
+\begin{tabular}{p{0.28\textwidth} p{0.16\textwidth} p{0.42\textwidth}}
+\toprule
+Risque & Niveau & Mesure de réduction \\
+\midrule
+Fuite de données temporelles & Élevé & Décalage des features et séparation par année \\
+Données synthétiques & Élevé & Validation future sur des mesures réelles \\
+Erreur récursive & Élevé & Limiter l'horizon et afficher une mise en garde \\
+Météo indisponible & Moyen & Utiliser un proxy historique explicitement documenté \\
+Incompatibilité de schéma & Moyen & Vérifier les colonnes et l'ordre des features \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{État de l'Art}
+
+\section{Technologies et frameworks étudiés}
+
+La solution s'appuie sur Python pour l'ingestion, la préparation et la
+modélisation des données. Pandas et NumPy sont utilisés pour les traitements
+tabulaires et numériques. Scikit-learn intervient dans l'évaluation et le
+calcul des métriques, tandis que XGBoost fournit le modèle de régression.
+Joblib permet de charger le modèle pré-entraîné et OpenPyXL prend en charge
+la lecture des fichiers Excel.
+
+Le backend est construit avec FastAPI et exécuté avec Uvicorn. Le frontend
+est une application React 19 construite avec Vite. Les graphiques sont
+réalisés avec Recharts et les tests frontend utilisent Vitest et Testing
+Library.
+
+\section{Choix technologique justifié}
+
+XGBoost a été retenu car il convient aux données tabulaires, permet de
+modéliser des relations non linéaires et offre un compromis intéressant entre
+performance et temps de calcul. FastAPI fournit une API légère et typée pour
+relier le modèle à l'interface utilisateur. React et Recharts permettent de
+présenter plusieurs vues analytiques sans mélanger la logique métier et la
+présentation.
+
+Ces choix restent adaptés à un prototype local. Une mise en production
+nécessiterait notamment une validation sur des données réelles, une gestion
+des utilisateurs, une supervision et une stratégie de déploiement.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Comparaison des alternatives technologiques}
+	\label{tab:comparaison-technologies}
+	\begin{tabular}{p{0.25\textwidth} p{0.3\textwidth} p{0.3\textwidth}}
+		\toprule
+		Alternative & Avantages & Inconvénients \\
+		\midrule
+		Traitement manuel & Simple à démarrer & Peu reproductible \\
+		Modèle naïf & Référence facile à interpréter & Précision limitée \\
+		XGBoost + API web & Bon pour les données tabulaires et consultable & Nécessite une chaîne de données fiable \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+% Pour un projet d'IA : présenter les modèles et algorithmes candidats.
+% Pour un projet de BI : présenter les outils ETL, entrepôts et outils de visualisation.
+
+\section{Prévision de séries temporelles}
+
+Une série temporelle est une suite d'observations indexées par le temps. Dans
+le cas de la demande électrique, chaque observation correspond à une heure et
+la variable cible est la puissance demandée. La prévision consiste à estimer
+une valeur future à partir des observations disponibles avant cette heure.
+
+La structure de la demande combine généralement plusieurs composantes : une
+tendance de long terme, une saisonnalité journalière, une saisonnalité
+hebdomadaire, des effets calendaires et une composante irrégulière. Le projet
+représente ces composantes à l'aide de variables temporelles et de retards de
+la demande plutôt qu'avec un modèle statistique classique unique.
+
+Pour éviter une discontinuité artificielle entre 23 heures et 0 heure, l'heure
+est également représentée par des fonctions trigonométriques :
+
+\begin{equation}
+hour\_sin_t = \sin\left(2\pi \frac{hour_t}{24}\right),
+\qquad
+hour\_cos_t = \cos\left(2\pi \frac{hour_t}{24}\right).
+\end{equation}
+
+La même logique est utilisée pour le jour de la semaine. Les variables
+cycliques permettent au modèle de comprendre que 23 heures et 0 heure sont
+voisines, contrairement à une représentation numérique brute.
+
+\section{Méthodes de référence}
+
+Une baseline est indispensable pour savoir si un modèle d'apprentissage
+apporte réellement une amélioration. La baseline à 24 heures suppose que la
+demande observée la veille à la même heure constitue une bonne estimation. La
+baseline à 168 heures reprend la demande de la semaine précédente.
+
+Ces méthodes sont simples, transparentes et difficiles à battre lorsque la
+saisonnalité est très régulière. Elles présentent toutefois des limites en
+cas de variation météorologique, de changement de comportement ou de journée
+exceptionnelle. Le modèle XGBoost cherche à combiner ces répétitions avec les
+variables calendaires et météorologiques.
+
+\section{Apprentissage par gradient boosting}
+
+XGBoost construit une somme séquentielle d'arbres de décision. À chaque
+itération, un nouvel arbre tente de corriger les erreurs résiduelles des
+arbres précédents. Pour une régression, la prédiction peut être représentée
+schématiquement par :
+
+\begin{equation}
+\hat{y}_t = \sum_{k=1}^{K} f_k(x_t),
+\end{equation}
+
+où $K$ est le nombre d'arbres et $f_k$ un arbre appartenant à l'espace des
+modèles faibles. Le taux d'apprentissage contrôle la contribution de chaque
+arbre. La profondeur, le sous-échantillonnage et les régularisations limitent
+le surapprentissage.
+
+Le choix de XGBoost est cohérent avec un jeu de données tabulaire enrichi de
+variables temporelles. Il ne nécessite pas de normaliser toutes les variables
+et peut représenter des relations non linéaires entre température, calendrier
+et demande.
+
+\section{Comparaison avec des alternatives}
+
+Une moyenne mobile est facile à calculer mais réagit lentement aux variations
+rapides. Une régression linéaire est interprétable mais peut être trop
+restrictive pour les interactions entre variables. Les réseaux récurrents ou
+les transformeurs pourraient représenter des dépendances complexes, mais ils
+nécessitent davantage de données, de réglages et de ressources.
+
+Dans ce projet académique, XGBoost offre un compromis raisonnable entre
+complexité, vitesse d'entraînement, interprétabilité par importance des
+variables et qualité des résultats.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparaison élargie des approches de prévision}
+\label{tab:approches-prevision}
+\begin{tabular}{p{0.22\textwidth} p{0.26\textwidth} p{0.22\textwidth} p{0.2\textwidth}}
+\toprule
+Approche & Principe & Atout & Limite \\
+\midrule
+Naïve 24 h & Répétition journalière & Très simple & Ignore les changements \\
+Naïve 168 h & Répétition hebdomadaire & Bonne référence saisonnière & Réagit peu aux événements \\
+Régression linéaire & Relation additive & Interprétable & Relations limitées \\
+XGBoost & Ensemble d'arbres & Non linéaire et efficace & Dépend des features \\
+Réseau profond & Représentation séquentielle & Flexible & Plus coûteux à régler \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Conception et Architecture}
+
+\section{Méthodologie de gestion de projet}
+
+Le projet a été mené selon une démarche itérative. Les travaux ont été
+organisés autour de plusieurs étapes : compréhension du besoin, exploration
+des données, construction des variables, entraînement et comparaison des
+modèles, développement de l'API, développement de l'interface et validation.
+
+Cette organisation est proche d'une démarche Agile, car chaque étape produit
+un résultat vérifiable et peut conduire à des ajustements. Elle est adaptée à
+un prototype de recherche appliquée dont les besoins techniques sont précisés
+progressivement.
+
+\section{Architecture globale de la solution}
+
+L'architecture globale suit le flux suivant : le fichier CSV ou XLSX est chargé
+par le module d'ingestion, contrôlé puis transformé en variables utilisables
+par le modèle XGBoost. Le modèle pré-entraîné est chargé avec Joblib. FastAPI
+expose ensuite les données, les métriques et les prédictions sous forme
+d'endpoints HTTP. Enfin, l'application React consomme ces endpoints et
+présente les résultats avec des graphiques Recharts.
+
+L'architecture est organisée en couches. La couche données lit le fichier et
+effectue les contrôles de structure. La couche features enrichit les lignes
+avec les variables causales. La couche modèle charge le package XGBoost et
+calcule les métriques. La couche API transforme ces résultats en réponses
+JSON. Enfin, la couche frontend sélectionne les routes et rend les graphiques.
+
+Cette séparation limite le couplage. Une modification de l'affichage ne doit
+pas modifier les règles de calcul des features. De même, une évolution du
+modèle doit conserver le contrat de réponse attendu par les pages React.
+
+\begin{table}[htbp]
+\centering
+\caption{Responsabilités des couches de la solution}
+\label{tab:couches-architecture}
+\begin{tabular}{p{0.22\textwidth} p{0.35\textwidth} p{0.28\textwidth}}
+\toprule
+Couche & Responsabilité & Modules principaux \\
+\midrule
+Données & Lecture et contrôle des fichiers & ingestion.py \\
+Features & Création des variables causales & features.py \\
+Modèle & Entraînement, métriques et artefact & modeling.py \\
+API & Validation et exposition HTTP & main.py \\
+Interface & Navigation et visualisation & App.jsx, pages React \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{M2.jpeg}
+    \caption{Architecture globale de la solution}
+    \label{fig:}
+\end{figure}
+
+\section{Modélisation et Conception}
+
+La conception repose sur une séparation entre les données, la logique de
+modélisation et la présentation. Le backend regroupe l'ingestion, les
+features, l'évaluation et les routes API. Le frontend est organisé en pages
+correspondant aux besoins d'analyse : vue d'ensemble, analyse de la demande,
+performance du modèle et prévision.
+
+Le projet ne contient pas de diagrammes UML formels dans son implémentation
+actuelle. Les éléments de conception ci-dessous décrivent donc les interactions
+fonctionnelles utiles au démonstrateur.
+
+\section{Contrat des données}
+
+Le fichier d'entrée doit contenir quatre colonnes principales. La colonne
+\texttt{Timestamp} identifie l'instant d'observation. La colonne
+\texttt{Demand} contient la cible exprimée en mégawatts. Les colonnes
+\texttt{Temperature} et \texttt{Humidity} apportent le contexte
+météorologique. Le contrôle du schéma est réalisé avant le calcul des
+features afin d'éviter qu'une erreur de nom de colonne ne soit découverte
+seulement au moment de l'entraînement.
+
+Le jeu initial contient 43 848 lignes et couvre janvier 2020 à décembre 2024.
+Après retrait des lignes entièrement vides, 43 844 timestamps sont utilisables
+par l'application. Les observations sont triées par date et la fréquence
+horaire est imposée. Cette étape rend explicites les trous éventuels au lieu
+de les masquer dans un index irrégulier.
+
+\begin{longtable}{p{0.24\textwidth} p{0.23\textwidth} p{0.4\textwidth}}
+\caption{Dictionnaire des données d'entrée}\label{tab:dictionnaire-donnees}\\
+\toprule
+Colonne & Type attendu & Description \\
+\midrule
+\endfirsthead
+\toprule
+Colonne & Type attendu & Description \\
+\midrule
+\endhead
+\texttt{Timestamp} & Date-heure & Index temporel horaire \\
+\texttt{Demand} & Numérique & Demande électrique cible en MW \\
+\texttt{Temperature} & Numérique & Température associée à l'observation \\
+\texttt{Humidity} & Numérique & Humidité associée à l'observation \\
+\bottomrule
+\end{longtable}
+
+\section{Catalogue des variables construites}
+
+Les variables calendaires décrivent l'instant sans utiliser la cible. Elles
+comprennent l'heure, le jour de la semaine, le mois, l'année, le jour de
+l'année, le trimestre et la semaine ISO. Les indicateurs de week-end et de
+jour férié marocain ajoutent une information qualitative.
+
+Les variables de retard représentent la demande passée. Les retards de 1, 2,
+3, 6 et 12 heures capturent la dynamique courte. Les retards de 24 et
+48 heures représentent la répétition journalière. Les retards de 72, 168 et
+336 heures donnent au modèle une mémoire de plusieurs jours et semaines.
+
+Les statistiques glissantes résument la demande passée. Pour une fenêtre $w$,
+la moyenne est calculée par :
+
+\begin{equation}
+\overline{D}_{t,w} = \frac{1}{w}\sum_{i=1}^{w}D_{t-i}.
+\end{equation}
+
+L'indice $t-i$ garantit que la demande de l'heure à prédire n'est pas utilisée.
+Le même principe est appliqué à l'écart-type, qui mesure la volatilité récente.
+
+\begin{longtable}{p{0.3\textwidth} p{0.26\textwidth} p{0.28\textwidth}}
+\caption{Catalogue des familles de features}\label{tab:catalogue-features}\\
+\toprule
+Famille & Exemples & Rôle \\
+\midrule
+\endfirsthead
+\toprule
+Famille & Exemples & Rôle \\
+\midrule
+\endhead
+Calendrier & hour, month, quarter & Décrire la position temporelle \\
+Cyclique & hour\_sin, hour\_cos & Représenter les cycles \\
+Événements & is\_weekend, is\_holiday & Distinguer les jours particuliers \\
+Météo & Temperature, Humidity & Représenter le contexte extérieur \\
+Retards & lag\_1h, lag\_24h, lag\_168h & Exploiter l'historique de demande \\
+Fenêtres & mean\_24h, std\_168h & Résumer niveau et variabilité \\
+\bottomrule
+\end{longtable}
+
+% Pour un projet de BI : inclure le modèle dimensionnel et le pipeline ETL.
+% Pour un projet d'IA : inclure le pipeline ML/DL, la préparation des données et le modèle choisi.
+% Pour un projet de développement : inclure les diagrammes UML.
+
+\subsection{Diagrammes de cas d'utilisation}
+
+L'utilisateur consulte les informations générales, analyse les facteurs liés
+à la demande, compare les modèles et demande une prévision historique ou
+future. L'API joue le rôle d'intermédiaire entre l'utilisateur et les données
+préparées ; elle valide notamment les dates, les horizons et les tableaux
+météorologiques reçus.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{m3.jpeg}
+    \caption{Diagrammes de cas d’utilisation}
+    \label{fig:}
+\end{figure}
+
+\subsection{Diagrammes de séquence}
+
+Pour une prévision future, l'utilisateur choisit un horizon compris entre 1
+et 168 heures et peut fournir des valeurs de température et d'humidité. Le
+frontend envoie une requête POST à l'endpoint \texttt{/api/forecast/future}. Le
+backend construit les variables de la première heure, calcule la prédiction,
+puis réutilise cette prédiction dans les étapes suivantes. La réponse est
+retournée au frontend pour affichage.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{m4.jpeg}
+    \caption{Diagramme de séquence de la prévision}
+    \label{fig:}
+\end{figure}
+
+\subsection{Diagramme de classes}
+
+Les principaux composants sont les modules d'ingestion, de création des
+features, de modélisation et d'API côté backend, ainsi que les pages et
+composants de visualisation côté frontend. Les données échangées sont des
+objets JSON contenant les métadonnées, les séries temporelles, les métriques
+et les prédictions.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{m5.jpeg}
+    \caption{Diagramme de classes}
+    \label{fig:}
+\end{figure}
+
+\subsection{Pipeline d'apprentissage automatique}
+
+Le pipeline ML suit les étapes suivantes : chargement du fichier, contrôle
+qualité, préparation temporelle, création des variables causales, séparation
+chronologique, entraînement, sélection, évaluation et sauvegarde du modèle.
+Le schéma doit montrer que les données de test 2024 restent séparées de
+l'entraînement et de l'early stopping réalisé sur 2023.
+
+\begin{figure}[H]
+
+    \centering
+
+    \includegraphics[width=0.9\textwidth]{m6.png}
+
+    \caption{Pipline ML complete}
+
+    \label{fig:}
+
+\end{figure}
+
+\subsection{Conception de l'interface utilisateur}
+
+La conception UI est organisée autour de quatre parcours : vue d'ensemble,
+analyse de la demande, performance du modèle et prévision. Chaque écran doit
+présenter une hiérarchie visuelle claire, des indicateurs lisibles et des
+graphiques permettant de comparer les valeurs. Les actions de l'utilisateur
+doivent rester cohérentes avec les validations de l'API, notamment pour les
+dates et l'horizon futur.
+
+\begin{figure}[H]
+
+    \centering
+
+    \includegraphics[width=1.1\textwidth]{Maquette_LoFi_Dashboard.png}
+
+    \caption{ Maquette et conception UI}
+
+    \label{fig:}
+
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{dashboard_gen.jpeg}
+    \caption{nterface React finale}
+    \label{fig:}
+\end{figure}
+
+\section{Conception de la prévision récursive}
+
+La prévision historique et la prévision future ne disposent pas des mêmes
+informations. Dans l’évaluation 2024, les retards peuvent être calculés à
+partir de l’historique observé. En prévision future, seule l’histoire jusqu’à
+la dernière observation est connue. La fonction récursive utilise donc la
+prédiction produite à l’instant $t$ comme une observation pour calculer
+certaines features de $t+1$.
+
+Pour les variables météorologiques futures, l’application peut recevoir des
+tableaux de température et d’humidité. En leur absence, elle utilise un proxy
+basé sur les moyennes historiques par mois et par heure. Cette solution
+permet de démontrer le mécanisme, mais ne constitue pas une prévision
+météorologique réelle.
+
+Le contrôle de l’horizon accepte une valeur comprise entre 1 et 168 heures.
+Au-delà de cette limite, l’incertitude augmente et les résultats doivent être
+interprétés avec prudence. La date de départ doit également correspondre à
+l’heure suivant la dernière observation.
+
+\chapter{Réalisation et Implémentation}
+
+\section{Environnement de développement}
+
+L'environnement de développement utilise Python pour le backend et JavaScript
+pour le frontend. Les principaux outils et bibliothèques sont :
+
+\begin{itemize}
+	\item FastAPI et Uvicorn pour l'API ;
+	\item Pandas, NumPy et OpenPyXL pour les données ;
+	\item XGBoost, scikit-learn et Joblib pour la modélisation ;
+	\item la bibliothèque \texttt{holidays} pour les jours fériés marocains ;
+	\item React 19, Vite et Recharts pour l'interface ;
+	\item Pytest, Vitest et Testing Library pour les tests.
+\end{itemize}
+
+Les versions exactes sont définies dans \texttt{requirements.txt} et
+\texttt{frontend/package.json}.
+
+\section{Organisation du code source}
+
+Le backend est séparé en modules spécialisés. Le module d'ingestion charge le
+fichier, normalise les timestamps et produit les contrôles de qualité. Le
+module de features calcule les variables temporelles, météo et historiques.
+Le module de modélisation regroupe la sélection, l'évaluation et la
+comparaison des configurations. Le module principal initialise l'application
+FastAPI et expose les routes.
+
+Le frontend suit une organisation par pages. La page Overview présente les
+indicateurs de volume et de période. Demand Analysis rassemble les analyses
+par heure, mois, type de jour et température. Model Performance présente les
+métriques et les erreurs. Forecast permet de consulter une prédiction
+historique ou de demander un horizon futur.
+
+Cette organisation facilite la maintenance, car chaque page possède une
+responsabilité claire. Les composants réutilisables, tels que les métriques et
+les tableaux, évitent de dupliquer la mise en forme.
+
+\section{Contrat de l'API}
+
+L'API fournit un contrat HTTP entre le frontend et les traitements Python. Le
+tableau \ref{tab:endpoints-api} résume les endpoints principaux.
+
+\begin{longtable}{p{0.18\textwidth} p{0.28\textwidth} p{0.38\textwidth}}
+\caption{Endpoints de l'API FastAPI}\label{tab:endpoints-api}\\
+\toprule
+Méthode & Route & Fonction \\
+\midrule
+\endfirsthead
+\toprule
+Méthode & Route & Fonction \\
+\midrule
+\endhead
+GET & \texttt{/api/health} & Vérifier l'état du modèle et des données \\
+GET & \texttt{/api/meta} & Retourner les bornes temporelles et la qualité \\
+GET & \texttt{/api/overview} & Retourner les statistiques générales \\
+GET & \texttt{/api/demand-analysis} & Retourner les agrégations d'analyse \\
+GET & \texttt{/api/model-performance} & Retourner métriques et diagnostics \\
+GET & \texttt{/api/forecast} & Comparer réel et prédit pour une date \\
+POST & \texttt{/api/forecast/future} & Produire une prévision récursive \\
+\bottomrule
+\end{longtable}
+
+Les requêtes sont validées avant le calcul. Une date inconnue, un horizon
+inférieur à 1 ou supérieur à 168, ou des tableaux météo de longueur
+incorrecte doivent produire une réponse d'erreur explicite. Cette validation
+évite qu'une entrée invalide ne provoque une erreur difficile à interpréter
+dans l'interface.
+
+\section{Métriques d'évaluation}
+
+La moyenne des erreurs absolues est définie par :
+
+\begin{equation}
+MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|.
+\end{equation}
+
+La racine de l'erreur quadratique moyenne pénalise davantage les grandes
+erreurs :
+
+\begin{equation}
+RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2}.
+\end{equation}
+
+Le coefficient $R^2$ compare la variance expliquée par le modèle à la variance
+de la cible. Le WAPE est calculé par :
+
+\begin{equation}
+WAPE = 100 \times \frac{\sum_i |y_i-\hat{y}_i|}{\sum_i |y_i|}.
+\end{equation}
+
+Enfin, le biais est défini comme la moyenne de $\hat{y}_i-y_i$. Un biais
+négatif correspond à une tendance à sous-estimer la demande. L'utilisation
+conjointe de ces métriques évite de réduire l'analyse à un seul indicateur.
+
+\section{Reproductibilité de l'expérimentation}
+
+La reproductibilité dépend de quatre éléments : le fichier source, le code de
+préparation, la configuration du modèle et la séparation temporelle. Le
+notebook documente les étapes d'exploration et d'entraînement. Le backend
+centralise les règles de features utilisées pendant l'inférence.
+
+La graine aléatoire est fixée dans la configuration du modèle. Les features
+sont ordonnées avant l'appel à XGBoost afin d'éviter qu'un changement de
+l'ordre des colonnes ne produise une prédiction incohérente. Le modèle est
+sauvegardé avec sa liste de variables et ses métriques dans un package Joblib.
+
+\section{Description des sprints et itérations}
+
+La réalisation a suivi les itérations suivantes :
+
+\begin{enumerate}
+	\item ingestion et contrôle de qualité du fichier de données ;
+	\item exploration des tendances et création des variables temporelles ;
+	\item entraînement et sélection du modèle XGBoost ;
+	\item développement des endpoints FastAPI ;
+	\item construction des pages React et des graphiques ;
+	\item ajout des tests et vérification des prévisions récursives.
+\end{enumerate}
+
+\section{Implémentation des composants clés}
+
+Le module d'ingestion convertit les timestamps, trie les observations et
+impose une fréquence horaire. Les variables météorologiques sont propagées
+vers l'avant lorsque cela est nécessaire, tandis que la demande cible n'est
+pas imputée. Les lignes qui ne disposent pas des variables nécessaires sont
+écartées de l'entraînement et de l'évaluation.
+
+Le modèle utilise 32 variables : des variables calendaires, des variables
+cycliques, des indicateurs de week-end et de jour férié, la température et
+l'humidité, des retards de demande et des moyennes ou écarts-types glissants.
+Les retards utilisés sont notamment de 1, 2, 3, 6, 12, 24, 48, 72, 168 et
+336 heures.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{perfocmance_2.jpeg}
+    \caption{Performance du modèle}
+    \label{fig:}
+\end{figure}
+
+\section{Résultats techniques}
+
+Le modèle actif est un \texttt{XGBRegressor} utilisant l'objectif
+\texttt{reg:squarederror}. Il comporte 1 328 arbres, un taux d'apprentissage de
+0,02, une profondeur maximale de 5, un sous-échantillonnage des observations
+de 0,85 et un sous-échantillonnage des variables de 0,85. La régularisation
+L1 vaut 0,1 et la régularisation L2 vaut 3,0.
+
+La sélection a porté sur huit configurations candidates. Elle s'est appuyée
+sur des validations chronologiques en 2023, avec le WAPE moyen comme critère
+principal et le RMSE comme critère secondaire. Le modèle retenu est
+\texttt{enhanced_conservative}.
+
+% Pour un projet d'IA : détailler l'entraînement et les métriques d'évaluation.
+% Pour un projet de BI : détailler l'entrepôt de données et les tableaux de bord.
+
+\section{Tests}
+
+\subsection{Tests unitaires}
+
+Les tests unitaires vérifient notamment la création des retards, des variables
+cycliques et des statistiques glissantes. Ils contrôlent aussi les calculs de
+métriques et la séparation chronologique des données.
+
+\subsection{Tests d'intégration}
+
+Les tests d'intégration couvrent l'état de santé de l'API, les métadonnées,
+la vue d'ensemble, l'analyse de la demande, la performance du modèle et les
+routes de prévision. Ils vérifient également les erreurs liées aux dates, aux
+horizons et aux données météorologiques.
+
+\subsection{Validation utilisateur}
+
+La validation réalisée dans le dépôt est principalement technique et
+automatisée. Elle vérifie que les pages frontend s'affichent, que les
+métriques sont présentes et que l'appel de prévision future est correctement
+effectué. Une validation métier par des utilisateurs finaux reste une étape
+à réaliser avant toute utilisation opérationnelle.
+
+\section{Guide d'utilisation de l'application}
+
+L'application s'ouvre sur la vue d'ensemble. L'utilisateur y vérifie la
+période couverte, le nombre d'observations et les principaux indicateurs. Il
+peut ensuite accéder à l'analyse de la demande pour observer les profils
+horaires et mensuels, comparer les jours ouvrés aux week-ends et examiner la
+relation entre température et demande.
+
+La page de performance présente la comparaison entre XGBoost et les
+baselines. Elle permet de consulter les métriques globales, les erreurs, les
+valeurs réelles et prédites ainsi que l'importance des variables. Cette page
+sert de support à l'interprétation et non de preuve suffisante pour un
+déploiement industriel.
+
+La page Forecast propose deux usages. La consultation historique permet de
+choisir une date existante et de comparer la valeur réelle à la valeur
+prédite. La prévision future demande un horizon et, lorsque cela est
+disponible, des tableaux météo. L'utilisateur doit lire l'avertissement sur
+le caractère récursif des horizons longs.
+
+\begin{enumerate}
+\item Vérifier l'état de l'API dans la vue d'ensemble.
+\item Contrôler les bornes temporelles et la qualité des données.
+\item Explorer les profils de demande avant d'interpréter une prévision.
+\item Comparer le modèle actif aux baselines.
+\item Générer une prévision future avec un horizon raisonnable.
+\item Conserver les captures et les paramètres utilisés pour la traçabilité.
+\end{enumerate}
+
+\section{Plan de validation fonctionnelle}
+
+La validation fonctionnelle est organisée par parcours utilisateur. Chaque
+parcours part d'une action et vérifie la réponse affichée. Le parcours santé
+contrôle que l'API, les données et le modèle sont disponibles. Le parcours
+analyse vérifie que les agrégations ne sont pas vides. Le parcours modèle
+vérifie que les métriques et les baselines sont cohérentes. Le parcours
+prévision vérifie le traitement d'une date historique puis d'un horizon futur.
+
+\begin{longtable}{p{0.25\textwidth} p{0.35\textwidth} p{0.25\textwidth}}
+\caption{Matrice de validation fonctionnelle}\label{tab:validation-fonctionnelle}\\
+\toprule
+Parcours & Action & Résultat attendu \\
+\midrule
+\endfirsthead
+\toprule
+Parcours & Action & Résultat attendu \\
+\midrule
+\endhead
+Santé & Ouvrir la vue d'ensemble & Statut et bornes affichés \\
+Analyse & Ouvrir Demand Analysis & Graphiques non vides \\
+Performance & Ouvrir Model Performance & Métriques et baselines affichées \\
+Historique & Choisir une date valide & Réel et prédit comparables \\
+Future & Demander 1 à 168 heures & Série future retournée \\
+Erreur & Envoyer un horizon invalide & Message d'erreur contrôlé \\
+\bottomrule
+\end{longtable}
+
+\chapter{Résultats et Discussion}
+
+\section{Présentation des résultats obtenus}
+
+L'évaluation finale porte sur 8 666 observations communes de l'année 2024.
+Le modèle actif est comparé à une baseline utilisant la valeur de la veille,
+à une baseline utilisant la valeur de la même heure de la semaine précédente
+et à un ancien modèle XGBoost.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Performances sur le test 2024}
+	\label{tab:performances-2024}
+	\begin{tabular}{lrrrrr}
+		\toprule
+		Modèle & MAE & RMSE & $R^2$ & WAPE & Biais \\
+		\midrule
+		Naïf 24 heures & 178,25 & 224,53 & 0,7860 & 6,09\% & -0,99 \\
+		Naïf 168 heures & 144,33 & 181,99 & 0,8594 & 4,93\% & -1,15 \\
+		Ancien XGBoost & 112,95 & 141,32 & 0,9152 & 3,86\% & -59,99 \\
+		XGBoost actif & \textbf{103,72} & \textbf{130,22} & \textbf{0,9280} & \textbf{3,55\%} & \textbf{-28,58} \\
+		\bottomrule
+	\end{tabular}
+	\\[0.2cm]
+	\small Les erreurs MAE, RMSE et biais sont exprimées en MW.
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{prevision future_.jpeg}
+    \caption{Wireframe Interface}
+    \label{fig:}
+\end{figure}
+
+\section{Analyse et interprétation}
+
+Le XGBoost actif obtient les meilleurs résultats parmi les modèles comparés.
+Son WAPE de 3,55\% indique une erreur absolue pondérée inférieure à celles
+des deux baselines et de l'ancien modèle. Le biais négatif de -28,58 MW montre
+toutefois une tendance moyenne à la sous-estimation. Le modèle explique une
+grande partie de la variabilité du test, avec un $R^2$ de 0,9280.
+
+Ces résultats doivent être interprétés comme une évaluation historique à
+court horizon avec des retards observés. Ils ne représentent pas directement
+la précision d'une prévision future entièrement récursive.
+
+\section{Comparaison avec l'existant et la baseline}
+
+Par rapport à la baseline à 24 heures, le modèle actif réduit le MAE de
+178,25 MW à 103,72 MW et le WAPE de 6,09\% à 3,55\%. Il améliore également la
+baseline à 168 heures, dont le WAPE est de 4,93\%. L'ancien XGBoost atteint un
+WAPE de 3,86\%, mais présente un biais plus important de -59,99 MW. Le modèle
+actif offre donc le meilleur compromis observé sur le test 2024.
+
+\section{Lecture détaillée des métriques}
+
+La baseline à 24 heures fournit un premier repère avec un MAE de 178,25 MW.
+Le modèle actif réduit cette erreur à 103,72 MW, soit une amélioration
+absolue de 74,53 MW. Le RMSE passe de 224,53 MW à 130,22 MW, ce qui indique
+une réduction importante des erreurs élevées. Le WAPE passe de 6,09\% à
+3,55\%, ce qui facilite la comparaison entre périodes de demande différente.
+
+La baseline hebdomadaire est plus compétitive : son MAE vaut 144,33 MW et son
+WAPE 4,93\%. Cette observation confirme que la saisonnalité hebdomadaire est
+importante. Malgré cela, le modèle enrichi conserve un avantage grâce à la
+combinaison des retards, de la météo et des variables calendaires.
+
+L'ancien XGBoost obtient un WAPE de 3,86\%, mais son biais de -59,99 MW est
+plus défavorable que celui du modèle actif. Un modèle peut donc avoir une
+bonne erreur moyenne tout en présentant une tendance systématique. L'analyse
+des métriques doit tenir compte de cette différence.
+
+\section{Analyse des erreurs par période}
+
+Les erreurs sont analysées par heure, jour de la semaine, mois et niveau de
+demande. Cette décomposition permet de repérer les périodes où le modèle est
+moins stable. Les heures de pointe sont particulièrement importantes, car une
+erreur à ces moments peut avoir un impact plus important sur la planification
+que la même erreur pendant une période creuse.
+
+La comparaison entre semaine et week-end permet de vérifier si les variables
+de calendrier capturent suffisamment le changement de comportement. L'analyse
+par mois permet de rechercher un effet saisonnier résiduel. Enfin, la
+catégorisation en demande faible, normale et de pointe donne une lecture plus
+opérationnelle des résultats.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{analyse erreurs.jpeg}
+    \caption{Analyse des erreurs par heure et par mois}
+    \label{fig:}
+\end{figure}
+
+\section{Importance des variables}
+
+L'importance des variables fournit un premier outil d'explicabilité. Les
+retards de 24 et 168 heures sont attendus parmi les variables utiles, car ils
+représentent les répétitions journalière et hebdomadaire. L'heure de la
+journée décrit les changements de rythme. La température et les statistiques
+glissantes ajoutent respectivement le contexte extérieur et le niveau récent
+de la demande.
+
+Cette analyse ne doit pas être interprétée comme une causalité physique
+stricte. Une importance élevée signifie que la variable contribue aux
+décisions des arbres dans le jeu étudié. Elle ne prouve pas que modifier cette
+variable provoquerait directement une variation de la demande.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{importance des variables.jpeg}
+    \caption{Importance des variables}
+    \label{fig:}
+\end{figure}
+
+\section{Intervalles et incertitude}
+
+L'interface peut afficher des intervalles empiriques autour de certaines
+prévisions. Ces intervalles sont estimés à partir du comportement historique
+des erreurs ; ils ne constituent pas une garantie statistique. Pour obtenir
+des intervalles calibrés, il faudrait étudier la distribution conditionnelle
+des erreurs, réaliser une validation dédiée et mesurer la couverture sur une
+période indépendante.
+
+\section{Limites identifiées}
+
+La première limite concerne les données : elles sont synthétiques et ne
+permettent pas de conclure sur la précision d'un système électrique réel. Le
+projet ne comporte pas non plus de fournisseur météo externe. En l'absence de
+prévisions météorologiques, les valeurs utilisées pour l'avenir peuvent être
+estimées à partir de moyennes historiques par mois et par heure.
+
+La seconde limite concerne les prévisions multi-horizon. Elles sont
+récursives, car les prédictions précédentes sont réinjectées dans les étapes
+suivantes. Enfin, le dépôt ne fournit pas encore de déploiement de production,
+de validation utilisateur formelle ou de garantie statistique pour les
+intervalles empiriques affichés.
+
+\chapter{Conclusion générale et Perspectives}
+
+\section{Bilan du travail réalisé}
+
+Ce projet a permis de réaliser un démonstrateur local complet de prévision
+horaire de la demande électrique. La chaîne développée couvre l'ingestion des
+données, le contrôle qualité, la création de variables, l'entraînement et
+l'évaluation d'un modèle XGBoost, l'exposition des résultats par une API
+FastAPI et leur consultation dans une interface React.
+
+Les objectifs techniques ont été atteints : les données sont analysées selon
+leur ordre chronologique, les performances sont comparées à des baselines et
+une prévision récursive de 1 à 168 heures est disponible. Sur les données de
+test 2024, le modèle actif obtient un WAPE de 3,55\% et un $R^2$ de 0,9280.
+Ces résultats restent ceux d'un prototype évalué sur des données synthétiques
+et ne constituent pas une validation industrielle.
+
+\section{Compétences acquises}
+
+La réalisation de ce projet a permis de développer des compétences en :
+
+\begin{itemize}
+	\item nettoyage, contrôle qualité et analyse exploratoire de données ;
+	\item création de variables pour les séries temporelles ;
+	\item entraînement, sélection et évaluation de modèles de régression ;
+	\item conception d'API avec FastAPI ;
+	\item développement d'interfaces React et de visualisations interactives ;
+	\item écriture de tests backend et frontend ;
+	\item documentation et communication de résultats techniques.
+\end{itemize}
+
+\section{Améliorations futures et pistes de recherche}
+
+Plusieurs améliorations peuvent prolonger ce travail. La première consiste à
+remplacer les données synthétiques par des mesures électriques réelles et à
+réaliser une validation avec les utilisateurs de l'entreprise. Il serait aussi
+pertinent d'intégrer un fournisseur de prévisions météorologiques afin de ne
+plus dépendre uniquement de moyennes historiques.
+
+Le système pourrait également intégrer des événements particuliers tels que
+le Ramadan, après validation d'une source de calendrier fiable, ainsi que des
+modèles supplémentaires pour comparer les performances. Enfin, un déploiement
+industriel nécessiterait une authentification, une supervision, une gestion
+des versions du modèle, une journalisation et une étude de la stabilité des
+prévisions sur des horizons longs.
+
+\renewcommand{\bibname}{Bibliographie et Webographie}
+\addcontentsline{toc}{chapter}{Bibliographie et Webographie}
+
+\begin{thebibliography}{9}
+	\bibitem{xgboost}
+	Chen, T. et Guestrin, C., \og XGBoost: A Scalable Tree Boosting System\fg{},
+	\textit{Proceedings of the 22nd ACM SIGKDD International Conference on
+	Knowledge Discovery and Data Mining}, 2016.
+	\bibitem{xgboost-docs}
+	XGBoost Developers, \textit{XGBoost Documentation},
+	\url{https://xgboost.readthedocs.io/}, consulté le 13 septembre 2026.
+	\bibitem{fastapi-docs}
+	FastAPI Developers, \textit{FastAPI Documentation},
+	\url{https://fastapi.tiangolo.com/}, consulté le 13 septembre 2026.
+	\bibitem{react-docs}
+	Meta Open Source, \textit{React Documentation},
+	\url{https://react.dev/}, consulté le 13 septembre 2026.
+	\bibitem{pandas-docs}
+	The pandas development team, \textit{pandas Documentation},
+	\url{https://pandas.pydata.org/docs/}, consulté le 13 septembre 2026.
+	\bibitem{sklearn-docs}
+	Scikit-learn Developers, \textit{Scikit-learn User Guide},
+	\url{https://scikit-learn.org/stable/user_guide.html}, consulté le 13 septembre 2026.
+\end{thebibliography}
+
+\appendix
+
+\chapter{Extraits de code}
+
+Les extraits les plus importants du projet concernent la création des
+variables temporelles et historiques, le chargement du modèle Joblib, la
+construction de la réponse de l'API et la boucle de prévision récursive. Le
+code source complet est organisé dans les modules
+\texttt{backend/ingestion.py}, \texttt{backend/features.py},
+\texttt{backend/modeling.py} et \texttt{backend/main.py}.
+
+\begin{verbatim}
+# Schéma simplifié de la prévision récursive
+historique = charger_historique()
+pour chaque heure future :
+	variables = construire_features(historique)
+	prediction = modele.predict(variables)
+	historique.ajouter(prediction)
+\end{verbatim}
+
+\chapter{Captures d'écran supplémentaires}
+
+Cette annexe est réservée aux captures complémentaires de l'application, aux
+résultats détaillés et aux vues qui ne sont pas présentées dans le corps du
+rapport.
+
+\screenshotpage{Page Overview}{Insérer la capture complète de la page Overview.}
+\screenshotpage{Indicateurs de la vue d'ensemble}{Insérer un zoom sur les cartes
+de période, de volume, de moyenne, de minimum et de maximum.}
+\screenshotpage{Série temporelle journalière}{Insérer le graphique de l'évolution
+de la demande journalière.}
+\screenshotpage{Analyse par heure}{Insérer les graphiques de demande moyenne et
+de distribution par heure.}
+\screenshotpage{Analyse par mois}{Insérer les graphiques de saisonnalité
+mensuelle.}
+\screenshotpage{Semaine et week-end}{Insérer la comparaison entre jours ouvrés
+et week-end.}
+\screenshotpage{Température et demande}{Insérer le nuage de points et la tendance
+température-demande.}
+\screenshotpage{Matrice de corrélation}{Insérer la heatmap des corrélations.}
+\screenshotpage{Performance globale}{Insérer la page Model Performance complète.}
+\screenshotpage{Comparaison des baselines}{Insérer le tableau ou graphique de
+comparaison entre les modèles.}
+\screenshotpage{Valeurs réelles et prédites}{Insérer la série des valeurs réelles
+et prédites sur la période de test.}
+\screenshotpage{Distribution des erreurs}{Insérer l'histogramme des erreurs et
+les statistiques associées.}
+\screenshotpage{Importance des variables}{Insérer le classement des features.}
+\screenshotpage{Diagnostic par horizon}{Insérer le diagnostic des scores selon
+l'horizon de prévision.}
+\screenshotpage{Prévision historique}{Insérer un exemple de comparaison pour une
+date historique.}
+\screenshotpage{Prévision future}{Insérer la page Forecast avec une prévision
+future de plusieurs heures.}
+\screenshotpage{Réponse de l'API}{Insérer une capture de la réponse JSON d'un
+endpoint important.}
+\screenshotpage{Documentation technique}{Insérer une capture de la documentation
+interactive FastAPI si elle est disponible.}
+\screenshotpage{Tests backend}{Insérer la sortie des tests Pytest.}
+\screenshotpage{Tests frontend}{Insérer la sortie des tests Vitest.}
+
+\chapter{Annexe technique : configuration et exécution}
+
+Cette annexe rassemble les éléments nécessaires pour reproduire le projet.
+Les commandes exactes peuvent dépendre du système d'exploitation, mais le
+principe reste identique : installer les dépendances Python, lancer l'API,
+installer les dépendances frontend puis démarrer Vite.
+
+\begin{verbatim}
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+uvicorn backend.main:app --reload
+
+cd frontend
+npm install
+npm run dev
+\end{verbatim}
+
+Le fichier de données doit être placé dans le chemin attendu ou indiqué par
+la variable d'environnement prévue par le backend. Avant de démarrer le
+frontend, il faut vérifier que l'URL de l'API correspond à la configuration
+locale. Le notebook peut ensuite être ouvert avec le même environnement Python
+afin de reproduire l'exploration et l'entraînement.
+
+\section{Checklist de reproduction}
+
+\begin{enumerate}
+\item Vérifier la version de Python et l'environnement virtuel.
+\item Installer les dépendances inscrites dans \texttt{requirements.txt}.
+\item Vérifier la présence du fichier de données et ses quatre colonnes.
+\item Exécuter les contrôles d'ingestion.
+\item Recalculer les features sans mélanger futur et passé.
+\item Vérifier la séparation 2022, 2023 et 2024.
+\item Entraîner ou charger l'artefact XGBoost.
+\item Lancer les tests backend et frontend.
+\item Démarrer l'API puis le tableau de bord React.
+\item Conserver les versions, métriques et captures dans le dossier du rapport.
+\end{enumerate}
+
+\section{Structure logique du dépôt}
+
+\begin{longtable}{p{0.3\textwidth} p{0.55\textwidth}}
+\caption{Principaux éléments du dépôt}\label{tab:structure-depot}\\
+\toprule
+Élément & Rôle \\
+\midrule
+\endfirsthead
+\toprule
+Élément & Rôle \\
+\midrule
+\endhead
+\texttt{backend/ingestion.py} & Chargement et contrôle des données \\
+\texttt{backend/features.py} & Features causales et calendrier \\
+\texttt{backend/modeling.py} & Entraînement et évaluation \\
+\texttt{backend/main.py} & Routes FastAPI \\
+\texttt{backend/tests/} & Tests du backend \\
+\texttt{frontend/src/} & Application React et pages \\
+\texttt{models/} & Artefacts et métadonnées du modèle \\
+\texttt{notebook.ipynb} & Workflow d'exploration et d'expérimentation \\
+\bottomrule
+\end{longtable}
+
+\chapter{Glossaire}
+
+\begin{description}
+	\item[API] Interface permettant à des applications de communiquer entre elles.
+	\item[Baseline] Modèle de référence utilisé pour comparer une nouvelle solution.
+	\item[Feature] Variable fournie au modèle d'apprentissage automatique.
+	\item[MAE] Erreur absolue moyenne entre les valeurs prédites et réelles.
+	\item[RMSE] Racine de l'erreur quadratique moyenne.
+	\item[WAPE] Erreur absolue pondérée par la demande observée.
+	\item[Prévision récursive] Prévision dans laquelle les prédictions précédentes
+	servent de variables pour les étapes suivantes.
+	\item[XGBoost] Bibliothèque de gradient boosting utilisée ici pour la régression.
+\end{description}
+
+\end{document}
