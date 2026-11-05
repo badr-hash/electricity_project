@@ -1,9 +1,9 @@
 # Running the local React + FastAPI demo
 
-Use Python 3.12 or 3.13 and Node.js 22.12+ with npm. The existing `.venv` is machine-specific (it references another user's Python); leave it untouched. From PowerShell:
+Use Python 3.12 or 3.13 and Node.js 22.12+ with npm. The existing `.venv` is machine-specific (it references another user's Python); leave it untouched. Replace the example path below with the folder where you cloned the repository. From PowerShell:
 
 ```powershell
-cd <path-to-electricity_project>
+cd "C:\path\to\electricity_project"
 python -m venv .venv-local
 .\.venv-local\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
@@ -15,7 +15,7 @@ Alternatively, after activation, `cd backend` and run `python -m uvicorn main:ap
 In a second PowerShell terminal:
 
 ```powershell
-cd <path-to-electricity_project>\frontend
+cd "C:\path\to\electricity_project\frontend"
 npm ci
 Copy-Item .env.example .env
 npm run dev
